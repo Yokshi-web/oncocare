@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONCOCARE — Cancer Care Companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F7F4EC;
+    --surface:#FFFFFF;
+    --ink:#1E2A27;
+    --ink-soft:#5B6862;
+    --primary:#1B4B4A;
+    --primary-light:#2F6B68;
+    --primary-pale:#E4EEEC;
+    --gold:#C08A2E;
+    --gold-pale:#F6EBD6;
+    --coral:#D9503B;
+    --coral-pale:#FBE7E2;
+    --sage:#DEE7DD;
+    --line:#E4DFD1;
+    --radius:14px;
+    --shadow: 0 1px 2px rgba(30,42,39,.04), 0 8px 24px rgba(30,42,39,.06);
+    --font-display:'Fraunces', serif;
+    --font-body:'Inter', sans-serif;
+    --font-mono:'JetBrains Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--gold-pale);}
+  a{color:inherit;}
+  button{font-family:inherit;cursor:pointer;}
+  :focus-visible{outline:2px solid var(--primary);outline-offset:2px;}
+
+  /* ===== App shell ===== */
+  #app{display:flex;min-height:100vh;}
+
+  .sidebar{
+    width:236px;flex-shrink:0;
+    background:var(--primary);
+    color:#F2F6F4;
+    display:flex;flex-direction:column;
+    padding:26px 16px;
+    position:sticky;top:0;height:100vh;
+  }
+  .brand{display:flex;align-items:center;gap:10px;padding:0 8px 22px;}
+  .brand-mark{
+    width:34px;height:34px;border-radius:10px;
+    background:linear-gradient(135deg,var(--gold),#E4B85C);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:700;color:var(--primary);font-size:17px;
+  }
+  .brand-name{font-family:var(--font-display);font-weight:600;font-size:19px;letter-spacing:.2px;}
+  .brand-sub{font-size:10.5px;color:#B9CCC8;letter-spacing:.09em;text-transform:uppercase;margin-top:-2px;}
+
+  .nav{display:flex;flex-direction:column;gap:2px;margin-top:8px;}
+  .nav-item{
+    display:flex;align-items:center;gap:11px;
+    padding:10px 12px;border-radius:10px;
+    background:transparent;border:none;color:#CFE0DC;
+    font-size:14px;font-weight:500;text-align:left;width:100%;
+    transition:background .15s ease, color .15s ease;
+  }
+  .nav-item .ic{width:18px;height:18px;flex-shrink:0;opacity:.85;}
+  .nav-item:hover{background:rgba(255,255,255,.08);color:#fff;}
+  .nav-item.active{background:#F2F6F4;color:var(--primary);font-weight:600;}
+  .nav-item.active .ic{opacity:1;}
+
+  .sidebar-foot{margin-top:auto;padding-top:16px;border-top:1px solid rgba(255,255,255,.14);}
+  .patient-pill{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;}
+  .avatar{width:34px;height:34px;border-radius:50%;background:var(--gold-pale);color:var(--gold);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:14px;}
+  .patient-pill .who{font-size:13px;font-weight:600;color:#fff;line-height:1.2;}
+  .patient-pill .role{font-size:11px;color:#B9CCC8;}
+
+  .sos-btn{
+    margin-top:12px;width:100%;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,.25);
+    background:var(--coral);color:#fff;font-weight:700;font-size:13px;letter-spacing:.02em;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+  }
+  .sos-btn:hover{background:#c4402c;}
+
+  main{flex:1;min-width:0;padding:30px 38px 60px;}
+  .topbar{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:26px;flex-wrap:wrap;gap:10px;}
+  .page-eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0 0 4px;}
+  .page-title{font-family:var(--font-display);font-size:30px;font-weight:600;margin:0;color:var(--ink);}
+  .page-date{font-family:var(--font-mono);font-size:12.5px;color:var(--ink-soft);}
+
+  .view{display:none;}
+  .view.active{display:block;}
+
+  .grid{display:grid;gap:18px;}
+  .grid-2{grid-template-columns:1.3fr 1fr;}
+  .grid-3{grid-template-columns:repeat(3,1fr);}
+  @media (max-width:980px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+
+  .card{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:20px;
+  }
+  .card h3{font-family:var(--font-display);font-size:16.5px;margin:0 0 4px;font-weight:600;}
+  .card .hint{font-size:12.5px;color:var(--ink-soft);margin:0 0 14px;}
+  .card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;}
+  .tag{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:4px 9px;border-radius:100px;}
+  .tag.teal{background:var(--primary-pale);color:var(--primary);}
+  .tag.gold{background:var(--gold-pale);color:var(--gold);}
+  .tag.coral{background:var(--coral-pale);color:var(--coral);}
+
+  /* Cycle ring (signature element) */
+  .cycle-wrap{display:flex;align-items:center;gap:22px;flex-wrap:wrap;}
+  .cycle-ring{position:relative;width:168px;height:168px;flex-shrink:0;}
+  .cycle-ring svg{transform:rotate(-90deg);}
+  .cycle-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .cycle-center .num{font-family:var(--font-mono);font-size:26px;font-weight:700;color:var(--primary);}
+  .cycle-center .lbl{font-size:10.5px;color:var(--ink-soft);letter-spacing:.05em;text-transform:uppercase;}
+  .cycle-meta{flex:1;min-width:180px;}
+  .cycle-meta .row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13.5px;}
+  .cycle-meta .row:last-child{border-bottom:none;}
+  .cycle-meta .row b{font-weight:600;}
+
+  /* Lists */
+  .list{display:flex;flex-direction:column;gap:9px;}
+  .item{
+    display:flex;align-items:center;gap:12px;padding:11px 12px;
+    border:1px solid var(--line);border-radius:10px;background:#FCFBF7;
+  }
+  .item.done{opacity:.55;}
+  .item.done .item-title{text-decoration:line-through;}
+  .check{
+    width:21px;height:21px;border-radius:50%;border:2px solid var(--primary-light);
+    flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#fff;
+  }
+  .item.done .check{background:var(--primary);border-color:var(--primary);}
+  .item.done .check::after{content:"✓";color:#fff;font-size:12px;font-weight:700;}
+  .item-body{flex:1;min-width:0;}
+  .item-title{font-size:13.8px;font-weight:600;}
+  .item-sub{font-size:12px;color:var(--ink-soft);font-family:var(--font-mono);}
+  .item-time{font-family:var(--font-mono);font-size:12px;color:var(--primary);font-weight:600;white-space:nowrap;}
+  .pill-type{font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px;white-space:nowrap;}
+  .pill-type.med{background:var(--gold-pale);color:var(--gold);}
+  .pill-type.appt{background:var(--primary-pale);color:var(--primary);}
+  .pill-type.chemo{background:var(--coral-pale);color:var(--coral);}
+
+  .btn{
+    padding:9px 15px;border-radius:9px;border:1px solid var(--line);background:#fff;
+    font-size:13px;font-weight:600;color:var(--ink);
+  }
+  .btn:hover{border-color:var(--primary-light);}
+  .btn.primary{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .btn.primary:hover{background:var(--primary-light);}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--primary);padding:8px 4px;}
+  .btn.small{padding:6px 10px;font-size:12px;}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+  .form-row.full{grid-template-columns:1fr;}
+  label{display:block;font-size:11.5px;font-weight:600;color:var(--ink-soft);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em;}
+  input,select,textarea{
+    width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--line);
+    font-family:inherit;font-size:13.5px;background:#FCFBF7;color:var(--ink);
+  }
+  textarea{resize:vertical;min-height:64px;}
+
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  @media (max-width:820px){.stat-grid{grid-template-columns:repeat(2,1fr);}}
+  .stat{border:1px solid var(--line);border-radius:12px;padding:14px;background:#FCFBF7;}
+  .stat .val{font-family:var(--font-mono);font-size:21px;font-weight:700;color:var(--primary);}
+  .stat .lbl{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  .stat.warn .val{color:var(--coral);}
+
+  /* Nutrition */
+  .meal-card{border:1px solid var(--line);border-radius:12px;padding:14px;background:#FCFBF7;}
+  .meal-card h4{margin:0 0 4px;font-family:var(--font-display);font-size:15px;}
+  .meal-card .time{font-family:var(--font-mono);font-size:11px;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+  .meal-card p{margin:8px 0 0;font-size:13px;color:var(--ink-soft);line-height:1.5;}
+  .hydration{display:flex;align-items:center;gap:14px;}
+  .glasses{display:flex;gap:6px;flex-wrap:wrap;}
+  .glass{width:26px;height:32px;border-radius:4px 4px 8px 8px;border:2px solid var(--primary-light);background:#fff;}
+  .glass.filled{background:var(--primary-light);}
+
+  /* Vitals chart */
+  .chart-wrap{width:100%;overflow-x:auto;}
+  .symptom-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;}
+  .symptom-tags .tag-chip{
+    font-size:12px;padding:6px 11px;border-radius:100px;border:1px solid var(--line);background:#fff;font-weight:500;
+  }
+  .symptom-tags .tag-chip.selected{background:var(--coral-pale);border-color:var(--coral);color:var(--coral);font-weight:700;}
+
+  /* Messaging */
+  .thread{display:flex;flex-direction:column;gap:10px;max-height:420px;overflow-y:auto;padding-right:4px;}
+  .msg{max-width:74%;padding:10px 13px;border-radius:13px;font-size:13.5px;line-height:1.45;}
+  .msg.in{background:var(--sage);align-self:flex-start;border-bottom-left-radius:3px;}
+  .msg.out{background:var(--primary-pale);align-self:flex-end;border-bottom-right-radius:3px;}
+  .msg .who{font-size:10.5px;font-weight:700;color:var(--ink-soft);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em;}
+  .composer{display:flex;gap:8px;margin-top:14px;}
+  .composer input{flex:1;}
+
+  /* Emergency */
+  .emg-hero{
+    background:linear-gradient(135deg, var(--coral), #B93F2C);
+    color:#fff;border-radius:var(--radius);padding:26px;
+    display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  }
+  .emg-hero h2{font-family:var(--font-display);font-size:22px;margin:0 0 6px;}
+  .emg-hero p{margin:0;color:#FBDCD5;font-size:13.5px;max-width:420px;}
+  .big-sos{
+    width:110px;height:110px;border-radius:50%;background:#fff;color:var(--coral);
+    font-family:var(--font-display);font-weight:700;font-size:17px;border:none;
+    box-shadow:0 8px 22px rgba(0,0,0,.18);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;flex-shrink:0;
+  }
+  .big-sos:hover{transform:scale(1.03);}
+  .contact-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);}
+  .contact-row:last-child{border-bottom:none;}
+  .contact-name{font-weight:600;font-size:13.8px;}
+  .contact-role{font-size:12px;color:var(--ink-soft);}
+  .call-btn{background:var(--primary-pale);color:var(--primary);border:none;border-radius:8px;padding:8px 12px;font-weight:700;font-size:12.5px;}
+
+  .toast{
+    position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:#fff;padding:12px 20px;border-radius:10px;font-size:13.5px;font-weight:500;
+    box-shadow:0 10px 30px rgba(0,0,0,.25); opacity:0;pointer-events:none;transition:all .25s ease;z-index:50;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:760px){
+    #app{flex-direction:column;}
+    .sidebar{width:100%;height:auto;position:relative;flex-direction:row;align-items:center;padding:14px;overflow-x:auto;}
+    .brand{padding:0 12px 0 0;}
+    .nav{flex-direction:row;margin-top:0;}
+    .nav-item span.lbl-text{display:none;}
+    .sidebar-foot{display:none;}
+    main{padding:20px;}
+  }
+  @media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important;}}
+
+  /* ===== Auth screen ===== */
+  #authScreen{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(1200px 600px at 15% -10%, #244F4D 0%, var(--primary) 45%, #12312F 100%);
+    padding:24px;
+  }
+  .auth-card{
+    width:100%;max-width:920px;background:var(--surface);border-radius:20px;overflow:hidden;
+    display:grid;grid-template-columns:1fr 1fr;box-shadow:0 30px 80px rgba(10,25,23,.35);
+  }
+  @media (max-width:820px){.auth-card{grid-template-columns:1fr;}}
+  .auth-side{
+    background:linear-gradient(160deg, var(--primary), #163C3A);
+    color:#EFF6F4;padding:40px 34px;display:flex;flex-direction:column;justify-content:space-between;
+  }
+  .auth-side .brand-mark{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--gold),#E4B85C);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;color:var(--primary);font-size:19px;margin-bottom:16px;}
+  .auth-side h2{font-family:var(--font-display);font-size:26px;font-weight:600;margin:0 0 10px;line-height:1.25;}
+  .auth-side p{font-size:13.5px;color:#BFD6D2;line-height:1.6;margin:0;}
+  .auth-feats{list-style:none;margin:26px 0 0;padding:0;display:flex;flex-direction:column;gap:12px;}
+  .auth-feats li{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#DCEAE7;}
+  .auth-feats li .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);margin-top:6px;flex-shrink:0;}
+  .auth-foot-note{font-size:11px;color:#8FADA8;margin-top:30px;}
+
+  .auth-form-side{padding:40px 38px;}
+  .auth-tabs{display:flex;gap:4px;background:var(--bg);border-radius:11px;padding:4px;margin-bottom:24px;}
+  .auth-tab{flex:1;border:none;background:transparent;padding:9px;border-radius:8px;font-size:13.5px;font-weight:700;color:var(--ink-soft);}
+  .auth-tab.active{background:#fff;color:var(--primary);box-shadow:var(--shadow);}
+  .auth-title{font-family:var(--font-display);font-size:22px;font-weight:600;margin:0 0 4px;}
+  .auth-sub{font-size:13px;color:var(--ink-soft);margin:0 0 22px;}
+  .auth-panel{display:none;}
+  .auth-panel.active{display:block;}
+  .role-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+  .role-opt{border:1px solid var(--line);border-radius:9px;padding:9px 6px;text-align:center;font-size:11.5px;font-weight:600;color:var(--ink-soft);background:#FCFBF7;}
+  .role-opt.selected{border-color:var(--primary);background:var(--primary-pale);color:var(--primary);}
+  .field-error{color:var(--coral);font-size:12px;margin:-6px 0 10px;min-height:14px;}
+  .auth-submit{width:100%;padding:12px;border-radius:10px;background:var(--primary);color:#fff;border:none;font-weight:700;font-size:14px;margin-top:6px;}
+  .auth-submit:hover{background:var(--primary-light);}
+  .auth-switch{text-align:center;font-size:12.5px;color:var(--ink-soft);margin-top:16px;}
+  .auth-switch button{background:none;border:none;color:var(--primary);font-weight:700;text-decoration:underline;font-size:12.5px;padding:0;}
+  .consent-row{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;color:var(--ink-soft);margin:4px 0 16px;line-height:1.4;}
+  .consent-row input{width:auto;margin-top:2px;}
+
+  #app{display:none;}
+  #app.authed{display:flex;}
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN (mandatory login / register gate) -->
+<div id="authScreen">
+  <div class="auth-card">
+    <div class="auth-side">
+      <div>
+        <div class="brand-mark">O</div>
+        <h2>Every part of chemotherapy care, in one place.</h2>
+        <p>Sign in to your ONCOCARE account to view your treatment plan, reminders, and care team.</p>
+        <ul class="auth-feats">
+          <li><span class="dot"></span> Chemo cycle tracking &amp; session notes</li>
+          <li><span class="dot"></span> Medication &amp; appointment reminders</li>
+          <li><span class="dot"></span> Personalized nutrition &amp; hydration</li>
+          <li><span class="dot"></span> Vitals monitoring with fever alerts</li>
+          <li><span class="dot"></span> Direct doctor &amp; caregiver messaging</li>
+          <li><span class="dot"></span> One-tap emergency assistance</li>
+        </ul>
+      </div>
+      <div class="auth-foot-note">Your account is required so your care circle can safely see the right information.</div>
+    </div>
+
+    <div class="auth-form-side">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabLoginBtn">Log in</button>
+        <button class="auth-tab" id="tabRegisterBtn">Register</button>
+      </div>
+
+      <!-- LOGIN PANEL -->
+      <div class="auth-panel active" id="panelLogin">
+        <h3 class="auth-title">Welcome back</h3>
+        <p class="auth-sub">Log in to continue to your dashboard.</p>
+        <div class="form-row full"><div><label>Email</label><input type="email" id="loginEmail" placeholder="you@example.com"></div></div>
+        <div class="form-row full"><div><label>Password</label><input type="password" id="loginPassword" placeholder="Enter your password"></div></div>
+        <div class="field-error" id="loginError"></div>
+        <button class="auth-submit" id="loginSubmit">Log in</button>
+        <p style="font-size:11px;color:var(--ink-soft);text-align:center;margin:10px 0 0;">Demo account — email: anita.menon@example.com · password: demo1234</p>
+        <div class="auth-switch">Don't have an account? <button id="goRegister">Register</button></div>
+      </div>
+
+      <!-- REGISTER PANEL -->
+      <div class="auth-panel" id="panelRegister">
+        <h3 class="auth-title">Create your account</h3>
+        <p class="auth-sub">Tell us who you are so we can set up the right view.</p>
+        <label>I am registering as</label>
+        <div class="role-grid" id="roleGrid">
+          <div class="role-opt selected" data-role="Patient">Patient</div>
+          <div class="role-opt" data-role="Caregiver">Caregiver</div>
+          <div class="role-opt" data-role="Clinician">Clinician</div>
+        </div>
+        <div class="form-row full"><div><label>Full name</label><input type="text" id="regName" placeholder="e.g. Anita Menon"></div></div>
+        <div class="form-row"><div><label>Email</label><input type="email" id="regEmail" placeholder="you@example.com"></div>
+          <div><label>Phone</label><input type="tel" id="regPhone" placeholder="+91 98xxxxxxxx"></div></div>
+        <div class="form-row"><div><label>Password</label><input type="password" id="regPassword" placeholder="Create a password"></div>
+          <div><label>Confirm password</label><input type="password" id="regPassword2" placeholder="Re-enter password"></div></div>
+        <div class="consent-row"><input type="checkbox" id="regConsent"><label style="text-transform:none;font-weight:400;" for="regConsent">I consent to sharing my health data with my chosen care team, as described in the privacy policy.</label></div>
+        <div class="field-error" id="registerError"></div>
+        <button class="auth-submit" id="registerSubmit">Create account</button>
+        <div class="auth-switch">Already have an account? <button id="goLogin">Log in</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" aria-label="Primary">
+    <div class="brand">
+      <div class="brand-mark">O</div>
+      <div>
+        <div class="brand-name">ONCOCARE</div>
+        <div class="brand-sub">Care Companion</div>
+      </div>
+    </div>
+
+    <div class="nav" id="navList">
+      <button class="nav-item active" data-view="dashboard"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="lbl-text">Dashboard</span></button>
+      <button class="nav-item" data-view="chemo"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span class="lbl-text">Chemo Plan</span></button>
+      <button class="nav-item" data-view="reminders"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22a2 2 0 0 0 2-2H10a2 2 0 0 0 2 2Z"/><path d="M18 16v-5a6 6 0 0 0-12 0v5l-2 2h16Z"/></svg><span class="lbl-text">Reminders</span></button>
+      <button class="nav-item" data-view="nutrition"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 2a7 7 0 0 0-7 7c0 3 2 5 2 9a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2c0-4 2-6 2-9a7 7 0 0 0-5-7Z"/><path d="M11 2v6"/></svg><span class="lbl-text">Nutrition</span></button>
+      <button class="nav-item" data-view="vitals"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg><span class="lbl-text">Health Monitor</span></button>
+      <button class="nav-item" data-view="messages"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg><span class="lbl-text">Care Team</span></button>
+      <button class="nav-item" data-view="emergency"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L14.7 3.86a2 2 0 0 0-3.4 0Z"/></svg><span class="lbl-text">Emergency</span></button>
+    </div>
+
+    <div class="sidebar-foot">
+      <div class="patient-pill">
+        <div class="avatar" id="sidebarAvatar">AM</div>
+        <div>
+          <div class="who" id="sidebarName">Anita Menon</div>
+          <div class="role" id="sidebarRole">Patient · Cycle 3 of 6</div>
+        </div>
+      </div>
+      <button class="sos-btn" id="sosSidebarBtn">🚨 Emergency SOS</button>
+      <button class="btn ghost" id="logoutBtn" style="width:100%;margin-top:8px;color:#CFE0DC;">Log out</button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- DASHBOARD -->
+    <section class="view active" id="view-dashboard">
+      <div class="topbar">
+        <div>
+          <p class="page-eyebrow">Today</p>
+          <h1 class="page-title">Good morning, Anita</h1>
+        </div>
+        <div class="page-date" id="todayDate"></div>
+      </div>
+
+      <div class="grid grid-2" style="margin-bottom:18px;">
+        <div class="card">
+          <div class="card-head">
+            <div><h3>Chemotherapy Cycle</h3><p class="hint">Cycle 3 of 6 · Regimen: FOLFOX</p></div>
+            <span class="tag coral">Day 8 of 14</span>
+          </div>
+          <div class="cycle-wrap">
+            <div class="cycle-ring">
+              <svg width="168" height="168" viewBox="0 0 168 168">
+                <circle cx="84" cy="84" r="72" fill="none" stroke="#EFE9DA" stroke-width="14"/>
+                <circle id="cycleProgress" cx="84" cy="84" r="72" fill="none" stroke="#D9503B" stroke-width="14" stroke-linecap="round" stroke-dasharray="452" stroke-dashoffset="194"/>
+              </svg>
+              <div class="cycle-center">
+                <div class="num">8/14</div>
+                <div class="lbl">Days elapsed</div>
+              </div>
+            </div>
+            <div class="cycle-meta">
+              <div class="row"><span>Next infusion</span><b>Aug 21, 2026</b></div>
+              <div class="row"><span>Site</span><b>City Oncology Day Unit</b></div>
+              <div class="row"><span>Last vitals check</span><b>Today, 8:02 AM</b></div>
+              <div class="row"><span>Oncologist</span><b>Dr. R. Iyer</b></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Today at a glance</h3>
+          <p class="hint">Auto-generated from your reminders &amp; monitoring</p>
+          <div class="stat-grid">
+            <div class="stat"><div class="val">2</div><div class="lbl">Meds left today</div></div>
+            <div class="stat"><div class="val">1</div><div class="lbl">Appointment</div></div>
+            <div class="stat warn"><div class="val">36.9°</div><div class="lbl">Last temp reading</div></div>
+            <div class="stat"><div class="val">5/8</div><div class="lbl">Water glasses</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-2">
+        <div class="card">
+          <h3>Up next</h3>
+          <p class="hint">Medication and appointment queue</p>
+          <div class="list" id="dashUpcoming"></div>
+        </div>
+        <div class="card">
+          <h3>Care team activity</h3>
+          <p class="hint">Latest messages with your team</p>
+          <div class="list" id="dashMessages"></div>
+          <div class="btn-row"><button class="btn ghost" data-goto="messages">Open Care Team →</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHEMO -->
+    <section class="view" id="view-chemo">
+      <div class="topbar">
+        <div><p class="page-eyebrow">Treatment</p><h1 class="page-title">Chemotherapy Plan</h1></div>
+      </div>
+      <div class="grid grid-2">
+        <div class="card">
+          <h3>Cycle overview</h3>
+          <p class="hint">FOLFOX · 6 planned cycles, 14 days each</p>
+          <div class="list" id="cycleList"></div>
+        </div>
+        <div class="card">
+          <h3>Log a session note</h3>
+          <p class="hint">Shared automatically with your care team</p>
+          <div class="form-row full">
+            <div><label>Session date</label><input type="date" id="chemoDate"></div>
+          </div>
+          <div class="form-row full">
+            <div><label>Side effects noticed</label><textarea id="chemoNotes" placeholder="e.g. mild nausea in the evening, fatigue"></textarea></div>
+          </div>
+          <button class="btn primary" id="saveChemoNote">Save note</button>
+          <h3 style="margin-top:20px;">Recent notes</h3>
+          <div class="list" id="chemoNotesList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- REMINDERS -->
+    <section class="view" id="view-reminders">
+      <div class="topbar">
+        <div><p class="page-eyebrow">Stay on schedule</p><h1 class="page-title">Medication &amp; Appointment Reminders</h1></div>
+      </div>
+      <div class="grid grid-2">
+        <div class="card">
+          <h3>Today's queue</h3>
+          <p class="hint">Tap to mark as done</p>
+          <div class="list" id="remindersList"></div>
+        </div>
+        <div class="card">
+          <h3>Add a reminder</h3>
+          <div class="form-row">
+            <div><label>Type</label>
+              <select id="remType"><option value="med">Medication</option><option value="appt">Appointment</option><option value="chemo">Chemo session</option></select>
+            </div>
+            <div><label>Time</label><input type="time" id="remTime"></div>
+          </div>
+          <div class="form-row full"><div><label>Title</label><input type="text" id="remTitle" placeholder="e.g. Ondansetron 8mg"></div></div>
+          <div class="form-row full"><div><label>Notes</label><input type="text" id="remSub" placeholder="e.g. take with food"></div></div>
+          <button class="btn primary" id="addReminder">Add to queue</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- NUTRITION -->
+    <section class="view" id="view-nutrition">
+      <div class="topbar">
+        <div><p class="page-eyebrow">Fuel for recovery</p><h1 class="page-title">Personalized Nutrition</h1></div>
+      </div>
+      <div class="grid grid-2">
+        <div class="card">
+          <h3>Today's meal plan</h3>
+          <p class="hint">Adjusted for low neutrophil count &amp; nausea sensitivity</p>
+          <div class="grid" style="gap:10px;" id="mealPlan"></div>
+        </div>
+        <div class="card">
+          <h3>Hydration tracker</h3>
+          <p class="hint">Goal: 8 glasses today</p>
+          <div class="hydration">
+            <div class="glasses" id="glassRow"></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn" id="addGlass">+ Add glass</button>
+            <button class="btn ghost" id="resetGlass">Reset</button>
+          </div>
+          <h3 style="margin-top:22px;">Dietary flags</h3>
+          <div class="symptom-tags">
+            <span class="tag-chip selected">Neutropenic diet</span>
+            <span class="tag-chip selected">Low fiber (during nausea)</span>
+            <span class="tag-chip">Lactose sensitivity</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VITALS -->
+    <section class="view" id="view-vitals">
+      <div class="topbar">
+        <div><p class="page-eyebrow">Know how you're doing</p><h1 class="page-title">Health Monitoring</h1></div>
+      </div>
+      <div class="grid grid-2">
+        <div class="card">
+          <h3>Log today's vitals</h3>
+          <div class="form-row">
+            <div><label>Temperature (°C)</label><input type="number" step="0.1" id="vTemp" placeholder="36.8"></div>
+            <div><label>Weight (kg)</label><input type="number" step="0.1" id="vWeight" placeholder="61.2"></div>
+          </div>
+          <div class="form-row">
+            <div><label>Blood pressure</label><input type="text" id="vBP" placeholder="118/76"></div>
+            <div><label>Pulse (bpm)</label><input type="number" id="vPulse" placeholder="78"></div>
+          </div>
+          <label>Symptoms today</label>
+          <div class="symptom-tags" id="symptomChips">
+            <span class="tag-chip" data-sym="Nausea">Nausea</span>
+            <span class="tag-chip" data-sym="Fatigue">Fatigue</span>
+            <span class="tag-chip" data-sym="Fever">Fever</span>
+            <span class="tag-chip" data-sym="Pain">Pain</span>
+            <span class="tag-chip" data-sym="Appetite loss">Appetite loss</span>
+            <span class="tag-chip" data-sym="Numbness">Numbness</span>
+          </div>
+          <div class="btn-row"><button class="btn primary" id="saveVitals">Save reading</button></div>
+        </div>
+        <div class="card">
+          <h3>7-day temperature trend</h3>
+          <p class="hint">Flags automatically if a reading crosses 38.0°C</p>
+          <div class="chart-wrap"><svg id="vitalsChart" width="100%" height="180" viewBox="0 0 460 180"></svg></div>
+          <h3 style="margin-top:16px;">Recent readings</h3>
+          <div class="list" id="vitalsHistory"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MESSAGES -->
+    <section class="view" id="view-messages">
+      <div class="topbar">
+        <div><p class="page-eyebrow">Stay connected</p><h1 class="page-title">Doctor &amp; Caregiver Communication</h1></div>
+      </div>
+      <div class="grid grid-2">
+        <div class="card">
+          <h3>Dr. R. Iyer — Oncologist</h3>
+          <p class="hint">Response time: usually within 4 hours</p>
+          <div class="thread" id="thread"></div>
+          <div class="composer">
+            <input type="text" id="msgInput" placeholder="Write a message to your care team…">
+            <button class="btn primary" id="sendMsg">Send</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Care circle</h3>
+          <p class="hint">Everyone kept in the loop, automatically</p>
+          <div class="list" id="careCircle"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EMERGENCY -->
+    <section class="view" id="view-emergency">
+      <div class="topbar">
+        <div><p class="page-eyebrow">If something feels wrong</p><h1 class="page-title">Emergency Assistance</h1></div>
+      </div>
+      <div class="emg-hero" style="margin-bottom:18px;">
+        <div>
+          <h2>One tap alerts your whole care circle</h2>
+          <p>Sends your location, latest vitals, and current medications to your emergency contacts and care team instantly.</p>
+        </div>
+        <button class="big-sos" id="sosMainBtn">🚨<span>SOS</span></button>
+      </div>
+      <div class="grid grid-2">
+        <div class="card">
+          <h3>Emergency contacts</h3>
+          <div class="list" id="emergencyContacts" style="gap:0;"></div>
+        </div>
+        <div class="card">
+          <h3>When to seek urgent help</h3>
+          <p class="hint">Reference guidance for chemotherapy patients</p>
+          <div class="list">
+            <div class="item"><div class="item-body"><div class="item-title">Fever of 38°C / 100.4°F or higher</div><div class="item-sub">May signal neutropenic infection — call immediately</div></div></div>
+            <div class="item"><div class="item-body"><div class="item-title">Uncontrolled vomiting or diarrhea</div><div class="item-sub">Risk of dehydration</div></div></div>
+            <div class="item"><div class="item-body"><div class="item-title">Unusual bleeding or bruising</div><div class="item-sub">Contact your care team same day</div></div></div>
+            <div class="item"><div class="item-body"><div class="item-title">Severe shortness of breath</div><div class="item-sub">Call emergency services directly</div></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------------- In-memory "registered users" store (demo only — no persistence layer) ---------------- */
+const registeredUsers = [
+  {email:'anita.menon@example.com', password:'demo1234', name:'Anita Menon', role:'Patient'},
+];
+let currentUser = null;
+
+/* ---------------- Auth screen wiring ---------------- */
+const authScreen = document.getElementById('authScreen');
+const appEl = document.getElementById('app');
+const panelLogin = document.getElementById('panelLogin');
+const panelRegister = document.getElementById('panelRegister');
+const tabLoginBtn = document.getElementById('tabLoginBtn');
+const tabRegisterBtn = document.getElementById('tabRegisterBtn');
+
+function showAuthPanel(which){
+  const isLogin = which === 'login';
+  tabLoginBtn.classList.toggle('active', isLogin);
+  tabRegisterBtn.classList.toggle('active', !isLogin);
+  panelLogin.classList.toggle('active', isLogin);
+  panelRegister.classList.toggle('active', !isLogin);
+  document.getElementById('loginError').textContent = '';
+  document.getElementById('registerError').textContent = '';
+}
+tabLoginBtn.addEventListener('click', ()=> showAuthPanel('login'));
+tabRegisterBtn.addEventListener('click', ()=> showAuthPanel('register'));
+document.getElementById('goRegister').addEventListener('click', ()=> showAuthPanel('register'));
+document.getElementById('goLogin').addEventListener('click', ()=> showAuthPanel('login'));
+
+let selectedRole = 'Patient';
+document.querySelectorAll('.role-opt').forEach(opt=>{
+  opt.addEventListener('click', ()=>{
+    document.querySelectorAll('.role-opt').forEach(o=>o.classList.remove('selected'));
+    opt.classList.add('selected');
+    selectedRole = opt.dataset.role;
+  });
+});
+
+function initials(name){
+  return name.trim().split(/\s+/).map(p=>p[0]).slice(0,2).join('').toUpperCase();
+}
+
+function enterApp(user){
+  currentUser = user;
+  authScreen.style.display = 'none';
+  appEl.classList.add('authed');
+  document.getElementById('sidebarAvatar').textContent = initials(user.name);
+  document.getElementById('sidebarName').textContent = user.name;
+  document.getElementById('sidebarRole').textContent = user.role + (user.role === 'Patient' ? ' · Cycle 3 of 6' : '');
+  toast(`Welcome, ${user.name.split(' ')[0]}`);
+}
+
+document.getElementById('loginSubmit').addEventListener('click', ()=>{
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  if(!email || !password){ errEl.textContent = 'Enter your email and password to continue.'; return; }
+  const user = registeredUsers.find(u => u.email === email && u.password === password);
+  if(!user){ errEl.textContent = 'We couldn\'t find an account with those details. Try registering instead.'; return; }
+  errEl.textContent = '';
+  enterApp(user);
+});
+
+document.getElementById('registerSubmit').addEventListener('click', ()=>{
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim().toLowerCase();
+  const phone = document.getElementById('regPhone').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const password2 = document.getElementById('regPassword2').value;
+  const consent = document.getElementById('regConsent').checked;
+  const errEl = document.getElementById('registerError');
+
+  if(!name || !email || !phone || !password || !password2){ errEl.textContent = 'Please fill in every field to create your account.'; return; }
+  if(!/^\S+@\S+\.\S+$/.test(email)){ errEl.textContent = 'Enter a valid email address.'; return; }
+  if(password.length < 6){ errEl.textContent = 'Password must be at least 6 characters.'; return; }
+  if(password !== password2){ errEl.textContent = 'Passwords do not match.'; return; }
+  if(registeredUsers.some(u=>u.email===email)){ errEl.textContent = 'An account with this email already exists — try logging in.'; return; }
+  if(!consent){ errEl.textContent = 'Please confirm consent to share data with your care team.'; return; }
+
+  errEl.textContent = '';
+  const newUser = {email, password, name, role: selectedRole, phone};
+  registeredUsers.push(newUser);
+  enterApp(newUser);
+});
+
+document.getElementById('logoutBtn').addEventListener('click', ()=>{
+  currentUser = null;
+  appEl.classList.remove('authed');
+  authScreen.style.display = 'flex';
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPassword').value = '';
+  showAuthPanel('login');
+});
+
+/* ---------------- In-memory app state (no persistence layer in this demo) ---------------- */
+const state = {
+  reminders: [
+    {id:1,type:'med',title:'Ondansetron 8mg',sub:'Take with food',time:'08:00',done:true},
+    {id:2,type:'med',title:'Folic acid 5mg',sub:'Morning dose',time:'08:00',done:true},
+    {id:3,type:'appt',title:'Bloodwork — CBC panel',sub:'City Oncology Lab, Room 4',time:'11:30',done:false},
+    {id:4,type:'med',title:'Ondansetron 8mg',sub:'Evening dose',time:'20:00',done:false},
+    {id:5,type:'med',title:'Loperamide (if needed)',sub:'Only if diarrhea occurs',time:'20:00',done:false},
+  ],
+  chemoNotes: [
+    {date:'2026-08-07', note:'Mild nausea in the evening, resolved with ondansetron.'},
+    {date:'2026-07-24', note:'Fatigue days 2–4, otherwise stable. Appetite reduced.'},
+  ],
+  vitals: [
+    {day:'Mon', temp:36.6}, {day:'Tue', temp:36.7}, {day:'Wed', temp:36.9},
+    {day:'Thu', temp:37.1}, {day:'Fri', temp:36.8}, {day:'Sat', temp:36.8}, {day:'Today', temp:36.9},
+  ],
+  symptomsSelected: new Set(),
+  glasses: 5,
+  glassGoal: 8,
+  messages: [
+    {who:'Dr. R. Iyer', side:'in', text:'Your latest CBC looks good — neutrophil count is within safe range for Friday\'s session.'},
+    {who:'You', side:'out', text:'Thank you, doctor. I had mild nausea two nights ago, should I adjust the antiemetic timing?'},
+    {who:'Dr. R. Iyer', side:'in', text:'Take the ondansetron 30 minutes earlier before dinner. Let us know if it continues.'},
+    {who:'Caregiver — Ravi (son)', side:'in', text:'I\'ll pick up the refill from the pharmacy this evening.'},
+  ],
+  contacts: [
+    {name:'Dr. R. Iyer', role:'Primary Oncologist', phone:'+91 98xxxxxx01'},
+    {name:'Ravi Menon', role:'Primary Caregiver (Son)', phone:'+91 98xxxxxx02'},
+    {name:'City Oncology — Duty Nurse', role:'24/7 Triage Line', phone:'+91 40xxxxxx03'},
+    {name:'Ambulance', role:'Emergency Services', phone:'108'},
+  ],
+};
+
+const toast = (msg) => {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.classList.remove('show'), 2600);
+};
+
+/* ---------------- Navigation ---------------- */
+document.querySelectorAll('.nav-item').forEach(btn=>{
+  btn.addEventListener('click', ()=> showView(btn.dataset.view));
+});
+document.querySelectorAll('[data-goto]').forEach(btn=>{
+  btn.addEventListener('click', ()=> showView(btn.dataset.goto));
+});
+function showView(name){
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active', b.dataset.view===name));
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active', v.id === 'view-'+name));
+}
+
+/* ---------------- Date ---------------- */
+document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-IN', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+
+/* ---------------- Reminders ---------------- */
+function renderReminders(){
+  const sorted = [...state.reminders].sort((a,b)=> a.done - b.done || a.time.localeCompare(b.time));
+  const listEl = document.getElementById('remindersList');
+  const dashEl = document.getElementById('dashUpcoming');
+  listEl.innerHTML=''; dashEl.innerHTML='';
+  sorted.forEach(r=>{
+    listEl.appendChild(reminderNode(r, true));
+  });
+  const upcoming = state.reminders.filter(r=>!r.done).sort((a,b)=>a.time.localeCompare(b.time)).slice(0,4);
+  if(upcoming.length===0){ dashEl.innerHTML = '<p class="hint">All caught up for today 🎉</p>'; }
+  upcoming.forEach(r=> dashEl.appendChild(reminderNode(r, false)));
+}
+function reminderNode(r, clickable){
+  const div = document.createElement('div');
+  div.className = 'item' + (r.done ? ' done':'');
+  div.innerHTML = `
+    <div class="check" role="button" aria-label="Toggle done"></div>
+    <div class="item-body">
+      <div class="item-title">${r.title} <span class="pill-type ${r.type}">${r.type==='med'?'Medication':r.type==='appt'?'Appointment':'Chemo'}</span></div>
+      <div class="item-sub">${r.sub||''}</div>
+    </div>
+    <div class="item-time">${formatTime(r.time)}</div>`;
+  if(clickable){
+    div.querySelector('.check').addEventListener('click', ()=>{
+      r.done = !r.done; renderReminders();
+      toast(r.done ? `Marked "${r.title}" as done` : `Reopened "${r.title}"`);
+    });
+  }
+  return div;
+}
+function formatTime(t){
+  if(!t) return '';
+  const [h,m] = t.split(':').map(Number);
+  const ap = h>=12?'PM':'AM'; const hh = ((h+11)%12)+1;
+  return `${hh}:${String(m).padStart(2,'0')} ${ap}`;
+}
+document.getElementById('addReminder').addEventListener('click', ()=>{
+  const title = document.getElementById('remTitle').value.trim();
+  const time = document.getElementById('remTime').value || '09:00';
+  const type = document.getElementById('remType').value;
+  const sub = document.getElementById('remSub').value.trim();
+  if(!title){ toast('Please enter a title for the reminder'); return; }
+  state.reminders.push({id:Date.now(), type, title, sub, time, done:false});
+  document.getElementById('remTitle').value=''; document.getElementById('remSub').value='';
+  renderReminders();
+  toast('Reminder added');
+});
+renderReminders();
+
+/* ---------------- Chemo cycle ---------------- */
+function renderCycleList(){
+  const el = document.getElementById('cycleList');
+  el.innerHTML='';
+  const cycles = [
+    {n:1, status:'Completed', date:'Jun 26, 2026'},
+    {n:2, status:'Completed', date:'Jul 10, 2026'},
+    {n:3, status:'In progress', date:'Aug 07 – Aug 21, 2026'},
+    {n:4, status:'Upcoming', date:'Aug 21, 2026'},
+    {n:5, status:'Upcoming', date:'Sep 04, 2026'},
+    {n:6, status:'Upcoming', date:'Sep 18, 2026'},
+  ];
+  cycles.forEach(c=>{
+    const div = document.createElement('div');
+    div.className = 'item';
+    const tagClass = c.status==='Completed'?'teal':c.status==='In progress'?'coral':'gold';
+    div.innerHTML = `<div class="item-body"><div class="item-title">Cycle ${c.n}</div><div class="item-sub">${c.date}</div></div><span class="tag ${tagClass}">${c.status}</span>`;
+    el.appendChild(div);
+  });
+}
+renderCycleList();
+
+function renderChemoNotes(){
+  const el = document.getElementById('chemoNotesList');
+  el.innerHTML='';
+  [...state.chemoNotes].reverse().forEach(n=>{
+    const div = document.createElement('div');
+    div.className='item';
+    div.innerHTML = `<div class="item-body"><div class="item-title">${new Date(n.date).toLocaleDateString('en-IN',{month:'short',day:'numeric',year:'numeric'})}</div><div class="item-sub">${n.note}</div></div>`;
+    el.appendChild(div);
+  });
+}
+renderChemoNotes();
+document.getElementById('saveChemoNote').addEventListener('click', ()=>{
+  const date = document.getElementById('chemoDate').value || new Date().toISOString().slice(0,10);
+  const note = document.getElementById('chemoNotes').value.trim();
+  if(!note){ toast('Add a note before saving'); return; }
+  state.chemoNotes.push({date, note});
+  document.getElementById('chemoNotes').value='';
+  renderChemoNotes();
+  toast('Note saved and shared with your care team');
+});
+
+/* ---------------- Nutrition ---------------- */
+const meals = [
+  {time:'Breakfast · 8:00 AM', title:'Soft moong dal khichdi + boiled egg', note:'Easy to digest, protein-rich, low residue for nausea sensitivity.'},
+  {time:'Mid-morning · 11:00 AM', title:'Coconut water + banana', note:'Replenishes electrolytes lost from mild GI symptoms.'},
+  {time:'Lunch · 1:30 PM', title:'Steamed rice, dal, cooked vegetables', note:'Neutropenic-safe: no raw salads, thoroughly cooked produce only.'},
+  {time:'Evening · 5:00 PM', title:'Herbal ginger tea + plain crackers', note:'Helps settle mild nausea before evening medication.'},
+  {time:'Dinner · 8:00 PM', title:'Vegetable soup + soft roti', note:'Light, warm, easy on appetite.'},
+];
+const mealEl = document.getElementById('mealPlan');
+meals.forEach(m=>{
+  const div = document.createElement('div');
+  div.className='meal-card';
+  div.innerHTML = `<div class="time">${m.time}</div><h4>${m.title}</h4><p>${m.note}</p>`;
+  mealEl.appendChild(div);
+});
+
+function renderGlasses(){
+  const row = document.getElementById('glassRow');
+  row.innerHTML='';
+  for(let i=0;i<state.glassGoal;i++){
+    const g = document.createElement('div');
+    g.className = 'glass' + (i < state.glasses ? ' filled':'');
+    row.appendChild(g);
+  }
+}
+renderGlasses();
+document.getElementById('addGlass').addEventListener('click', ()=>{
+  if(state.glasses < state.glassGoal){ state.glasses++; renderGlasses(); }
+  if(state.glasses === state.glassGoal) toast('Hydration goal reached for today 💧');
+});
+document.getElementById('resetGlass').addEventListener('click', ()=>{ state.glasses=0; renderGlasses(); });
+
+document.querySelectorAll('#view-nutrition .tag-chip').forEach(chip=>{
+  chip.addEventListener('click', ()=> chip.classList.toggle('selected'));
+});
+
+/* ---------------- Vitals ---------------- */
+function drawChart(){
+  const svg = document.getElementById('vitalsChart');
+  svg.innerHTML='';
+  const w=460,h=180,pad=30;
+  const vals = state.vitals.map(v=>v.temp);
+  const min = 35.8, max = 38.2;
+  const x = i => pad + i*((w-2*pad)/(state.vitals.length-1));
+  const y = t => h-30 - ((t-min)/(max-min))*(h-60);
+
+  // fever threshold line
+  const fy = y(38.0);
+  svg.innerHTML += `<line x1="${pad}" y1="${fy}" x2="${w-pad}" y2="${fy}" stroke="#D9503B" stroke-dasharray="4 4" stroke-width="1.2"/>
+    <text x="${w-pad}" y="${fy-6}" text-anchor="end" font-size="10" fill="#D9503B" font-family="JetBrains Mono">38.0° threshold</text>`;
+
+  let path = state.vitals.map((v,i)=> `${i===0?'M':'L'}${x(i)},${y(v.temp)}`).join(' ');
+  svg.innerHTML += `<path d="${path}" fill="none" stroke="#1B4B4A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+
+  state.vitals.forEach((v,i)=>{
+    svg.innerHTML += `<circle cx="${x(i)}" cy="${y(v.temp)}" r="4" fill="${v.temp>=38?'#D9503B':'#C08A2E'}" stroke="#fff" stroke-width="1.5"/>
+      <text x="${x(i)}" y="${h-8}" text-anchor="middle" font-size="10.5" fill="#5B6862" font-family="Inter">${v.day}</text>`;
+  });
+}
+function renderVitalsHistory(){
+  const el = document.getElementById('vitalsHistory');
+  el.innerHTML='';
+  [...state.vitals].reverse().forEach(v=>{
+    const div = document.createElement('div');
+    div.className='item';
+    div.innerHTML = `<div class="item-body"><div class="item-title">${v.day}</div><div class="item-sub">Temperature</div></div><div class="item-time">${v.temp.toFixed(1)}°C</div>`;
+    el.appendChild(div);
+  });
+}
+drawChart(); renderVitalsHistory();
+
+document.querySelectorAll('#symptomChips .tag-chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    chip.classList.toggle('selected');
+    const s = chip.dataset.sym;
+    state.symptomsSelected.has(s) ? state.symptomsSelected.delete(s) : state.symptomsSelected.add(s);
+  });
+});
+document.getElementById('saveVitals').addEventListener('click', ()=>{
+  const temp = parseFloat(document.getElementById('vTemp').value);
+  if(isNaN(temp)){ toast('Enter a temperature reading to save'); return; }
+  state.vitals.push({day:'Today*', temp});
+  if(state.vitals.length>7) state.vitals.shift();
+  drawChart(); renderVitalsHistory();
+  if(temp>=38){
+    toast('⚠ Fever threshold crossed — consider contacting your care team');
+  } else {
+    toast('Vitals saved');
+  }
+  document.getElementById('vTemp').value=''; document.getElementById('vWeight').value='';
+  document.getElementById('vBP').value=''; document.getElementById('vPulse').value='';
+});
+
+/* ---------------- Messages ---------------- */
+function renderThread(){
+  const el = document.getElementById('thread');
+  el.innerHTML='';
+  state.messages.forEach(m=>{
+    const div = document.createElement('div');
+    div.className = 'msg ' + m.side;
+    div.innerHTML = `<div class="who">${m.who}</div>${m.text}`;
+    el.appendChild(div);
+  });
+  el.scrollTop = el.scrollHeight;
+}
+function renderDashMessages(){
+  const el = document.getElementById('dashMessages');
+  el.innerHTML='';
+  state.messages.slice(-3).forEach(m=>{
+    const div = document.createElement('div');
+    div.className='item';
+    div.innerHTML = `<div class="item-body"><div class="item-title">${m.who}</div><div class="item-sub">${m.text.slice(0,64)}${m.text.length>64?'…':''}</div></div>`;
+    el.appendChild(div);
+  });
+}
+renderThread(); renderDashMessages();
+
+document.getElementById('sendMsg').addEventListener('click', sendMessage);
+document.getElementById('msgInput').addEventListener('keydown', e=>{ if(e.key==='Enter') sendMessage(); });
+function sendMessage(){
+  const input = document.getElementById('msgInput');
+  const text = input.value.trim();
+  if(!text) return;
+  state.messages.push({who:'You', side:'out', text});
+  input.value='';
+  renderThread(); renderDashMessages();
+  setTimeout(()=>{
+    state.messages.push({who:'Dr. R. Iyer', side:'in', text:'Got it — noted in your chart. We\'ll follow up if needed.'});
+    renderThread(); renderDashMessages();
+  }, 900);
+}
+
+function renderCareCircle(){
+  const el = document.getElementById('careCircle');
+  el.innerHTML='';
+  const circle = [
+    {name:'Dr. R. Iyer', role:'Oncologist · sees all vitals & notes'},
+    {name:'Ravi Menon', role:'Primary caregiver · full access'},
+    {name:'City Oncology Pharmacy', role:'Medication refills'},
+    {name:'Dietician — Priya S.', role:'Nutrition plan updates'},
+  ];
+  circle.forEach(c=>{
+    const div = document.createElement('div');
+    div.className='item';
+    div.innerHTML = `<div class="item-body"><div class="item-title">${c.name}</div><div class="item-sub">${c.role}</div></div>`;
+    el.appendChild(div);
+  });
+}
+renderCareCircle();
+
+/* ---------------- Emergency ---------------- */
+function renderContacts(){
+  const el = document.getElementById('emergencyContacts');
+  el.innerHTML='';
+  state.contacts.forEach(c=>{
+    const div = document.createElement('div');
+    div.className='contact-row';
+    div.innerHTML = `<div><div class="contact-name">${c.name}</div><div class="contact-role">${c.role}</div></div><button class="call-btn">Call ${c.phone}</button>`;
+    div.querySelector('.call-btn').addEventListener('click', ()=> toast(`Calling ${c.name}…`));
+    el.appendChild(div);
+  });
+}
+renderContacts();
+
+function triggerSOS(){
+  toast('🚨 SOS sent — location, vitals & medication list shared with your care circle');
+  showView('emergency');
+}
+document.getElementById('sosMainBtn').addEventListener('click', triggerSOS);
+document.getElementById('sosSidebarBtn').addEventListener('click', triggerSOS);
+
+</script>
+</body>
+</html>
